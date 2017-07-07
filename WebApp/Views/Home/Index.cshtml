@@ -1,0 +1,105 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+<div class="row">
+    <div class="col-md-3">
+        <h2></h2>
+        Login: <input id="Login" class="form-control"/><br/>
+        Expression: <input id="Expression" class="form-control"/> <br/>
+        Result: <input id="Result" class="form-control" /> <br/>
+
+        <button onclick="enter(1)" class="btn btn-default">1</button>
+        <button onclick="enter(2)" class="btn btn-default">2</button>
+        <button onclick="enter(3)" class="btn btn-default">3</button>
+        <button onclick="enter('+')" class="btn btn-default">+</button><br/>
+        <button onclick="enter(4)" class="btn btn-default">4</button>
+        <button onclick="enter(5)" class="btn btn-default">5</button>
+        <button onclick="enter(6)" class="btn btn-default">6</button>
+        <button onclick="enter('-')" class="btn btn-default">-</button><br/>
+        <button onclick="enter(7)" class="btn btn-default">7</button>
+        <button onclick="enter(8)" class="btn btn-default">8</button>
+        <button onclick="enter(9)" class="btn btn-default">9</button>
+        <button onclick="enter('*')" class="btn btn-default">*</button><br/>
+        <button onclick="enter(0)" class="btn btn-default">0</button>
+        <button onclick="clear()" class="btn btn-default">C</button>
+        <button onclick="calculate()" class="btn btn-default">=</button>
+        <button onclick="enter('/')" class="btn btn-default">/</button><br/><br />
+
+        <button onclick="showHistory()" class="btn btn-default">Показать все операции</button><br /><br />
+    </div>
+</div>
+
+<table id="History" class="table table-hover">
+    <tr>
+        <th>Login</th>
+        <th>Expression</th>
+        <th>Result</th>
+    </tr>
+</table>
+
+<script>
+    var expressionInput = $('#Expression');
+    var loginInput = $('#Login');
+    var resultInput = $('#Result');
+    var historyTable = $('#History');
+    
+    var root = 'http://localhost:50001';
+    
+    function calculate() {
+        var loginValue = loginInput.val();
+        if (!loginValue) {
+            alert("Please enter your login!");
+            return;
+        }
+        var expression = expressionInput.val();
+        if (expression) {
+            $.ajax({
+                //url: root + '/api/calculations?login=' + loginValue + '&expression=' + expression,
+                url: root + '/api/calculations',
+                data: { login: loginValue, expression: expression },
+                method: 'POST'
+            }).then(function (data) {
+                resultInput.val(data);
+            }, function(error) {
+                alert("Your expression is invalid!");
+            });
+        }
+    }
+
+    function showHistory() {
+        $.ajax({
+            url: root + '/api/calculations',
+            method: 'GET'
+        }).then(function (data) {
+            console.log(data);
+            
+            var tableHtml = '<tr><th>Login</th><th>Expression</th><th>Result</th></tr>';
+
+            $.each(data,
+                function(i, item) {
+                    tableHtml += '<tr><td>' +
+                        item.login +
+                        '</td><td>' +
+                        item.expression +
+                        '</td><td>' +
+                        item.result +
+                        '</td></tr>';
+                });
+
+            historyTable.empty();
+            historyTable.append(tableHtml);
+        });
+    }
+
+    function enter(value) {
+        expressionInput.val(expressionInput.val() + value);
+    }
+
+    function clear() {
+        expressionInput.value = '';
+    }
+
+</script>
